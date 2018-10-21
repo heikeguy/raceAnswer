@@ -1,0 +1,219 @@
+{% extends 'base.html' %}
+ 
+{% block title %}抢答器后台{% endblock %}
+ 
+{% block content %}
+{% include 'ad.html' %}
+
+<p>第 {{ subject }} 题：</p>
+<p><img src="/static/img/{{ subject }}.png" width="800" height="600"></p>
+
+<a href="http://127.0.0.1:8000/background_next">下一题</a>
+
+<p id="demo">抢答信息</p>
+
+<span id="clock">00:00:30:00</span>   
+<input id="startB" type="button" value="开始抢答" onclick="run()">   
+<input id="endB"   type="button" value="停止抢答" onclick="stop()">   
+<script language="Javascript">   
+
+var normalelapse = 100;   
+var nextelapse = normalelapse;   
+var counter;    
+var startTime;   
+var start = clock.innerText;    
+var finish = "00:00:00:00";   
+var timer = null;   
+
+// 开始运行   
+function run() {   
+startB.disabled = true;   
+endB.disabled = false;   
+counter = 0;   
+// 初始化开始时间   
+startTime = new Date().valueOf();   
+
+document.getElementById("demo").innerHTML="计时30秒，抢答开始。。。。。";
+
+// nextelapse是定时时间, 初始时为100毫秒   
+// 注意setInterval函数: 时间逝去nextelapse(毫秒)后, onTimer才开始执行   
+timer = window.setInterval("onTimer()", nextelapse);    
+
+}   
+
+// 停止运行   
+function stop() {   
+    startB.disabled = false;   
+    endB.disabled = true;   
+    window.clearTimeout(timer); 
+    document.getElementById("demo").innerHTML="抢答暂停。。。。。。";  
+}   
+
+window.onload = function() {   
+    endB.disabled = true;   
+}   
+
+// 倒计时函数   
+function onTimer()   
+{   
+
+if (start == finish)   
+{   
+window.clearInterval(timer);  
+document.getElementById("demo").innerHTML="抢答结束。。。。。。";  
+// alert("time is up!");   
+return;   
+}   
+
+var hms = new String(start).split(":");   
+var ms = new Number(hms[3]);   
+var s = new Number(hms[2]);   
+var m = new Number(hms[1]);   
+var h = new Number(hms[0]);   
+     
+ms -= 10;   
+if (ms < 0)   
+{   
+ms = 90;   
+s -= 1;   
+if (s < 0)   
+{   
+    s = 59;   
+    m -= 1;   
+}   
+     
+if (m < 0)   
+{   
+    m = 59;   
+    h -= 1;   
+}   
+}   
+
+var ms = ms < 10 ? ("0" + ms) : ms;   
+var ss = s < 10 ? ("0" + s) : s;   
+var sm = m < 10 ? ("0" + m) : m;   
+var sh = h < 10 ? ("0" + h) : h;   
+
+start = sh + ":" + sm + ":" + ss + ":" + ms;   
+clock.innerText = start;   
+
+// 清除上一次的定时器   
+window.clearInterval(timer);   
+
+// 自校验系统时间得到时间差, 并由此得到下次所启动的新定时器的时间nextelapse   
+counter++;    
+var counterSecs = counter * 100;   
+var elapseSecs = new Date().valueOf() - startTime;   
+var diffSecs = counterSecs - elapseSecs;   
+nextelapse = normalelapse + diffSecs;     
+if (nextelapse < 0) nextelapse = 0;
+
+// 启动新的定时器   
+timer = window.setInterval("onTimer()", nextelapse);   
+}   
+</script>
+
+<br>
+<input id="addSocre" type="text" value="20">   
+<button type="button" onclick="addSocre()">加分</button>
+<script>
+function addSocre(){
+    alert(document.getElementById("addSocre").value); 
+}
+</script>
+
+<br>
+<input id="setSocre" type="text" value="100">   
+<button type="button" onclick="setSocre()">设置分数</button>
+<script>
+function setSocre(){
+    alert(document.getElementById("setSocre").value); 
+}
+</script>
+
+
+<!-- <div id="cc" class="easyui-layout" style="width:600px;height:400px;">   
+    <div data-options="region:'north',title:'North Title',split:true" style="height:100px;">
+    	<h1 style="text-align: center">MIMI商品管理系统</h1>
+    </div>   
+
+    <div data-options="region:'south',title:'South Title',split:true" style="height:100px;">
+    	south
+    </div>   
+    
+    <div data-options="region:'east',iconCls:'icon-reload',title:'East',split:true" style="width:100px;">
+    	east
+    </div>   
+
+    <div data-options="region:'west',title:'West',split:true" style="width:100px;">
+    	west
+    </div>   
+
+    <div data-options="region:'center',title:'center title'" style="padding:5px;background:#eee;">
+    	center
+    </div>   
+</div>  -->
+
+{% endblock %}
+
+
+
+<!-- new code -->
+<!-- <!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Basic Layout - jQuery EasyUI Demo</title> -->
+   <!--  <link rel="stylesheet" type="text/css" href="easyui/themes/default/easyui.css">
+    <link rel="stylesheet" type="text/css" href="easyui/themes/icon.css">
+    <link rel="stylesheet" type="text/css" href="easyui/demo.css">
+    <script type="text/javascript" src="easyui/jquery.min.js"></script>
+    <script type="text/javascript" src="easyui/jquery.easyui.min.js"></script> -->
+<!-- </head>
+
+<body>
+    <h2>Basic Layout</h2>
+    <p>The layout contains north,south,west,east and center regions.</p> -->
+    <!-- <div style="margin:20px 0;"></div>
+    <div class="easyui-layout" id="layout" style="width:700px;height:350px;">
+        <div data-options="region:'north'" style="height:50px"></div>
+        <div data-options="region:'south',split:true" style="height:50px;"></div>
+        <div data-options="region:'east',split:true" title="East" style="width:100px;"></div>
+        <div data-options="region:'west',split:true" title="West" style="width:100px;"></div>
+        <div data-options="region:'center',title:'Main Title',iconCls:'icon-ok'">
+            <table class="easyui-datagrid"
+                    data-options="url:'datagrid_data1.json',method:'get',border:false,singleSelect:true,fit:true,fitColumns:true">
+                <thead>
+                    <tr>
+                        <th data-options="field:'itemid'" width="80">Item ID</th>
+                        <th data-options="field:'productid'" width="100">Product ID</th>
+                        <th data-options="field:'listprice',align:'right'" width="80">List Price</th>
+                        <th data-options="field:'unitcost',align:'right'" width="80">Unit Cost</th>
+                        <th data-options="field:'attr1'" width="150">Attribute</th>
+                        <th data-options="field:'status',align:'center'" width="60">Status</th>
+                    </tr>
+                </thead>
+            </table>
+        </div>
+    </div> -->
+
+<!-- </body>
+</html> -->
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

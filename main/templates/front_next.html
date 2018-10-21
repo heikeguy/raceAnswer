@@ -1,0 +1,320 @@
+<!-- new code -->
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>抢答器前端分页-王欢欢制作</title>
+    <link rel="stylesheet" type="text/css" href="../../static/easyui/themes/default/easyui.css">
+    <link rel="stylesheet" type="text/css" href="../../static/easyui/themes/icon.css">
+    <link rel="stylesheet" type="text/css" href="../../static/easyui/demo.css">
+    <script type="text/javascript" src="../../static/easyui/jquery.min.js"></script>
+    <script type="text/javascript" src="../../static/easyui/jquery.easyui.min.js"></script>
+
+    <script type="text/javascript">   
+            var maxtime = 3;
+            function CountDown() {
+                if (maxtime >= 0) {
+                    minutes = Math.floor(maxtime / 60);
+                    seconds = Math.floor(maxtime % 60);
+                    msg = "距离结束还有" + minutes + "分" + seconds + "秒";
+                    document.all["timer"].innerHTML = msg;
+                    --maxtime;
+                } else{
+                    clearInterval(timer);
+
+                    msg  = "抢答结束";
+                    msg1 = "抢答成功的是第?队";
+
+                    document.all["timer"].innerHTML = msg;
+                    document.all["textID_no"].innerHTML = msg1;
+                }
+            }  
+
+            function CountDown1() {
+                if (maxtime >= 0) {
+                    minutes = Math.floor(maxtime / 60);
+                    seconds = Math.floor(maxtime % 60);
+                    msg = "距离结束还有" + minutes + "分" + seconds + "秒";
+                    document.all["timer1"].innerHTML = msg;
+                    --maxtime;
+                } else{
+                    clearInterval(timer);
+                    timerMusic.pause();
+                    timerMusic.currentTime = 0;
+                    msg = "答题结束";
+                    document.all["timer1"].innerHTML = msg;
+                }
+            }    
+
+            function answer_timer(){
+                var timerMusic = document.getElementById("timerMusic");
+                timerMusic.currentTime = 0;
+                timerMusic.play();
+                maxtime = 19; 
+                timer = setInterval("CountDown1()", 1000); 
+            }
+           
+
+    </script>
+
+    <script type="text/javascript">   
+
+    teamNo = 1;
+    function answerResult(){
+        var timerMusic = document.getElementById("timerMusic");
+        timerMusic.pause();
+        timerMusic.currentTime = 0;
+
+        var answerRight = document.getElementById("answerRight");
+        var answerWrong = document.getElementById("answerWrong");
+
+        result = 0;
+        var tt = document.getElementsByName('Answer');
+        for (var iIndex = 0; iIndex < tt.length ; iIndex++ )
+        {
+            if(tt[iIndex].checked && tt[iIndex].value == {{ answer }})
+            {
+                
+                answerRight.play();alert("恭喜你，回答正确！");
+                result = 1;
+
+                break;
+            }else if(tt[iIndex].checked){
+                
+                answerWrong.play();alert("对不起，回答错误！");
+                result = 0;
+                break;
+            }
+        }
+
+        // 获得当前的答题队伍编号，以及回答结果是否正确
+        var self = this;
+        this.saveUrl = "{% url "comSerial_write" %}?result="+result+"&teamNo="+ {{ teamNo }};
+        $.ajax({
+            type: "POST",
+            dataType: "JSON",
+            url: self.saveUrl,
+            success: function(msg){
+                if(msg.rst == 'yes'){
+                    
+                }
+            }
+
+        });
+
+    }
+
+    function race_answer_timer(){
+                // 获得当前的答题队伍编号，以及回答结果是否正确
+                var result = "";
+                var self = this;
+
+                alert("抢答开始啰")
+
+                this.saveUrl = "{% url "comSerial_read" %}";
+                $.ajax({
+                    type: "POST",
+                    dataType: "JSON",
+                    url: self.saveUrl,
+                    success: function(msg){
+                        if(msg.rst == 'yes'){
+                            alert("抢答结束啦")
+                            teamNo = msg.teamNo;
+                            
+                            result += '抢答成功的是第' ;
+                            result += msg.teamNo;
+                            result += "队";
+                            document.all["textID_no"].innerHTML = result;    
+                               
+                        }
+                    }
+        
+                });
+                // timer = setInterval("CountDown()", 1000);   
+            }
+    </script>
+    
+
+</head>
+
+<body>
+<div id="cc" class="easyui-layout" style="width:1000px;height:700px;">   
+    <div data-options="region:'north',title:'第{{ subject }} 题',split:true" style="height:70px;">
+        <h1 style="text-align: center">请在规定时间内作答</h1>
+    </div>   
+
+    <div data-options="region:'south',title:'每个参赛队的得分如下：',split:true" style="height:130px;width:900px;">
+        <p>一共有{{ teamNum }}支参赛队伍</p>
+        <table border="1">
+            <tr>
+                  <td style="color:red"> NO:1, Score:{{ team1_score }}</td>
+                  <td style="color:red"> NO:2, Score:{{ team2_score }}</td>  
+                  <td style="color:red"> NO:3, Score:{{ team3_score }}</td>  
+            </tr> 
+        </table>
+    </div>   
+    
+    <div data-options="region:'east',iconCls:'icon-reload',title:'抢答台号',split:true" style="width:200px;">
+        <p></p>
+        <!-- race_answer_timer() -->
+
+        <button id="btn1" onclick="location='http:\/\/127.0\.0\.1:8000\/comSerial_read'" style="width:100px;height:50px;background-color:#FFA500;">开始抢答</button>
+        
+
+        {% ifequal teamNo 0 %}
+            <p id="textID_no">抢答成功的是第?队</p>
+        {% else %}
+            <p id="textID_no">抢答成功的是第{{ teamNo }}队</p>
+        {% endifequal %}
+
+        <br>
+        
+        <button onclick="answer_timer()" style="width:100px;height:50px;background-color:#FFD700;">开始答题计时</button>
+        <p></p>
+        
+        <p>答题计时19秒</p>
+        <div id="timer1" style="color:red"></div>
+        <br>
+        
+        <input type="radio" name="Answer" value="1"/>A
+        <input type="radio" name="Answer" value="2"/>B
+        <input type="radio" name="Answer" value="3"/>C
+        <input type="radio" name="Answer" value="4"/>D
+        <input type="button" value="答题结果" onclick="answerResult()" />
+        <br><br>
+        
+        <audio id="timerMusic" >
+            <source = src="/static/music/timerMusic.mp3" type="audio/mp3">
+        </audio>
+
+        <audio id="answerRight" >
+            <source = src="/static/music/answerRight.mp3" type="audio/mp3">
+        </audio>
+
+        <audio id="answerWrong" >
+            <source = src="/static/music/answerWrong.mp3" type="audio/mp3">
+        </audio>
+        
+
+        <a href="http://127.0.0.1:8000/front_next">下一题</a>
+    </div>   
+
+   <!--  <div data-options="region:'west',title:'West',split:true" style="width:100px;">
+         
+    </div>  -->  
+
+    <div data-options="region:'center',title:'题目内容如下'" style="width:1000px;height:500px;padding:5px;background:#eee;">
+        <p><img src="/static/img/{{ subject }}.png" width="800" height="500"></p>
+    </div>   
+</div> 
+
+
+<script language="Javascript">   
+
+    var counter;    
+    var startTime; 
+
+    var normalelapse  = 100;   
+    var nextelapse    = normalelapse;   
+    
+    var start  = clock.innerText;    
+    var finish = "00:00:00:00";   
+    var timer  = null;   
+
+    // 开始运行   
+    function run() {   
+        startB.disabled = true;   
+        counter = 0; 
+        
+        // 初始化开始时间   
+        startTime = new Date().valueOf();   
+        
+        document.getElementById("demo").innerHTML="计时30秒，抢答开始。。。。。";
+        
+        // nextelapse是定时时间, 初始时为100毫秒   
+        // 注意setInterval函数: 时间逝去nextelapse(毫秒)后, onTimer才开始执行   
+        timer = window.setInterval("onTimer()", nextelapse);    
+    }   
+ 
+
+// 倒计时函数   
+function onTimer()   
+{   
+
+    if (start == finish)   
+    {   
+        window.clearInterval(timer);  
+        document.getElementById("demo").innerHTML="抢答结束。。。。。。";  
+        // alert("time is up!");   
+        return;   
+    }   
+    
+     
+    var ms = new Number(hms[3]);   
+    var s  = new Number(hms[2]);   
+    var m  = new Number(hms[1]);   
+    var h  = new Number(hms[0]);   
+    var hms = new String(start).split(":");  
+
+    ms -= 10;   
+    if (ms < 0)   
+    {   
+    ms = 90;   
+    s -= 1;   
+    if (s < 0)   
+    {   
+        s = 59;   
+        m -= 1;   
+    }   
+         
+    if (m < 0)   
+    {   
+        m = 59;   
+        h -= 1;   
+    }   
+    }   
+    
+    var ms = ms < 10 ? ("0" + ms) : ms;   
+    var ss = s < 10 ? ("0" + s) : s;   
+    var sm = m < 10 ? ("0" + m) : m;   
+    var sh = h < 10 ? ("0" + h) : h;   
+    
+    start = sh + ":" + sm + ":" + ss + ":" + ms;   
+    clock.innerText = start;   
+    
+    // 清除上一次的定时器   
+    window.clearInterval(timer);   
+    
+    // 自校验系统时间得到时间差, 并由此得到下次所启动的新定时器的时间nextelapse   
+    counter++;    
+    var counterSecs = counter * 100;   
+    var elapseSecs = new Date().valueOf() - startTime;   
+    var diffSecs = counterSecs - elapseSecs;   
+    nextelapse = normalelapse + diffSecs;     
+    if (nextelapse < 0) nextelapse = 0;
+    
+    // 启动新的定时器   
+    timer = window.setInterval("onTimer()", nextelapse);   
+    }   
+</script>
+
+
+
+</body>
+</html> 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
